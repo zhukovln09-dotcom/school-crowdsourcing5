@@ -3,28 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Вместе</title>
+    <title>Вместе - Школьная платформа</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
     <div class="container">
         <header>
-            <h1><i class="fab fa-jedi-order"></i>Вместе</h1>
+            <div class="header-top">
+                <h1><i class="fas fa-users"></i> Вместе</h1>
+                <div id="authSection" class="auth-section">
+                    <button class="btn btn-small" onclick="app.showLoginForm()">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </button>
+                    <button class="btn btn-small btn-outline" onclick="app.showRegisterForm()">
+                        <i class="fas fa-user-plus"></i> Регистрация
+                    </button>
+                </div>
+                <div id="userSection" class="user-section" style="display: none;">
+                    <span class="user-info">
+                        <i class="fas fa-user-circle"></i>
+                        <span id="usernameSpan"></span>
+                        <span class="user-role" id="userRole"></span>
+                    </span>
+                    <button class="btn btn-small btn-outline" onclick="app.showInvitationForm()">
+                        <i class="fas fa-key"></i> Код приглашения
+                    </button>
+                    <button class="btn btn-small" onclick="app.logout()">
+                        <i class="fas fa-sign-out-alt"></i> Выйти
+                    </button>
+                </div>
+            </div>
             <p class="subtitle">Предлагайте идеи, голосуйте и улучшайте нашу школу вместе!</p>
         </header>
 
+        <!-- Формы авторизации -->
+        <div class="auth-forms">
+            <div id="loginForm" class="auth-form" style="display: none;">
+                <h3><i class="fas fa-sign-in-alt"></i> Вход в систему</h3>
+                <form onsubmit="event.preventDefault(); app.login(
+                    document.getElementById('loginEmail').value,
+                    document.getElementById('loginPassword').value
+                );">
+                    <input type="email" id="loginEmail" placeholder="Email" required>
+                    <input type="password" id="loginPassword" placeholder="Пароль" required>
+                    <button type="submit" class="btn">
+                        <i class="fas fa-sign-in-alt"></i> Войти
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="app.showRegisterForm()">
+                        Нет аккаунта? Зарегистрироваться
+                    </button>
+                </form>
+            </div>
+
+            <div id="registerForm" class="auth-form" style="display: none;">
+                <h3><i class="fas fa-user-plus"></i> Регистрация</h3>
+                <form onsubmit="event.preventDefault(); app.register(
+                    document.getElementById('registerEmail').value,
+                    document.getElementById('registerPassword').value,
+                    document.getElementById('registerUsername').value
+                );">
+                    <input type="email" id="registerEmail" placeholder="Email" required>
+                    <input type="password" id="registerPassword" placeholder="Пароль (минимум 6 символов)" required minlength="6">
+                    <input type="text" id="registerUsername" placeholder="Имя пользователя" required minlength="3">
+                    <button type="submit" class="btn">
+                        <i class="fas fa-user-plus"></i> Зарегистрироваться
+                    </button>
+                    <button type="button" class="btn btn-outline" onclick="app.showLoginForm()">
+                        Уже есть аккаунт? Войти
+                    </button>
+                </form>
+            </div>
+
+            <div id="verifyForm" class="auth-form" style="display: none;">
+                <h3><i class="fas fa-envelope"></i> Подтверждение email</h3>
+                <form onsubmit="event.preventDefault(); app.verifyEmail(
+                    document.getElementById('verifyEmail').value,
+                    document.getElementById('verifyCode').value
+                );">
+                    <input type="email" id="verifyEmail" placeholder="Email" required>
+                    <input type="text" id="verifyCode" placeholder="Код подтверждения из email" required>
+                    <button type="submit" class="btn">
+                        <i class="fas fa-check-circle"></i> Подтвердить
+                    </button>
+                </form>
+            </div>
+        </div>
+
         <main>
+            <!-- Панель модератора -->
+            <div id="moderationPanel" class="moderation-panel" style="display: none;">
+                <h2><i class="fas fa-shield-alt"></i> Панель модератора</h2>
+                <div class="panel-content">
+                    <h3>Идеи на модерацию</h3>
+                    <div id="pendingIdeasContainer" class="pending-ideas">
+                        <div class="loading">
+                            <i class="fas fa-spinner fa-spin"></i> Загрузка...
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Панель контент-менеджера -->
+            <div id="contentManagerPanel" class="content-manager-panel" style="display: none;">
+                <h2><i class="fas fa-chart-line"></i> Панель контент-менеджера</h2>
+                <div class="panel-content">
+                    <h3>Статистика платформы</h3>
+                    <div id="statsContainer"></div>
+                    <div class="content-actions">
+                        <button class="btn" onclick="app.loadIdeas()">
+                            <i class="fas fa-sync"></i> Обновить идеи
+                        </button>
+                    </div>
+                </div>
+            </div>
+
             <!-- Форма для добавления идеи -->
             <section class="idea-form">
                 <h2><i class="fas fa-plus-circle"></i> Предложить новую идею</h2>
                 <form id="ideaForm">
-                    <input type="text" id="author" placeholder="Ваше имя" required>
                     <input type="text" id="title" placeholder="Название идеи" required>
                     <textarea id="description" placeholder="Опишите вашу идею подробнее..." rows="4" required></textarea>
-                    <button type="submit" class="btn">
+                    <button type="submit" class="btn auth-required" style="display: none;">
                         <i class="fas fa-paper-plane"></i> Опубликовать идею
                     </button>
+                    <div class="auth-notice" id="ideaAuthNotice" style="display: block;">
+                        <p><i class="fas fa-info-circle"></i> Для добавления идей необходимо <a href="#" onclick="app.showLoginForm(); return false;">войти в систему</a></p>
+                    </div>
                 </form>
             </section>
 
@@ -40,24 +145,62 @@
         </main>
 
         <footer>
-            <p>Для учеников, учителей и родителей.</p>
+            <p>Для учеников, учителей и родителей. <span id="userCount"></span></p>
+            <p class="footer-links">
+                <a href="#" onclick="app.showLoginForm()">Вход</a> | 
+                <a href="#" onclick="app.showRegisterForm()">Регистрация</a> | 
+                <a href="#" onclick="app.showInvitationForm()">Код приглашения</a>
+            </p>
         </footer>
     </div>
 
     <!-- Модальное окно для комментариев -->
     <div id="commentModal" class="modal">
         <div class="modal-content">
-            <span class="close">&times;</span>
+            <span class="close" onclick="document.getElementById('commentModal').style.display='none'">&times;</span>
             <h3 id="modalTitle">Комментарии</h3>
             <div class="comments-section">
                 <div id="commentsContainer"></div>
                 <form id="commentForm">
-                    <input type="text" id="commentAuthor" placeholder="Ваше имя" required>
                     <textarea id="commentText" placeholder="Ваш комментарий..." rows="3" required></textarea>
-                    <button type="submit" class="btn">
+                    <button type="submit" class="btn auth-required" style="display: none;">
                         <i class="fas fa-comment"></i> Добавить комментарий
                     </button>
+                    <div class="auth-notice" id="commentAuthNotice" style="display: block;">
+                        <p><i class="fas fa-info-circle"></i> Для добавления комментариев необходимо <a href="#" onclick="app.showLoginForm(); return false;">войти в систему</a></p>
+                    </div>
                 </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно для кода приглашения -->
+    <div id="invitationModal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="document.getElementById('invitationModal').style.display='none'">&times;</span>
+            <h3><i class="fas fa-key"></i> Код приглашения</h3>
+            <div class="invitation-section">
+                <p>Введите код приглашения для получения прав модератора или контент-менеджера:</p>
+                <input type="text" id="invitationCode" placeholder="Введите код" style="
+                    width: 100%;
+                    padding: 12px;
+                    margin: 15px 0;
+                    font-size: 18px;
+                    text-align: center;
+                    letter-spacing: 3px;
+                    text-transform: uppercase;
+                ">
+                <button class="btn" onclick="app.useInvitationCode(document.getElementById('invitationCode').value.toUpperCase())">
+                    <i class="fas fa-check"></i> Использовать код
+                </button>
+                <div class="invitation-info">
+                    <p><strong>Доступные роли:</strong></p>
+                    <ul>
+                        <li><strong>Модератор</strong> - может удалять идеи и комментарии</li>
+                        <li><strong>Контент-менеджер</strong> - может одобрять идеи и выбирать лучшие</li>
+                    </ul>
+                    <p><em>Коды приглашения выдает администратор системы</em></p>
+                </div>
             </div>
         </div>
     </div>
@@ -65,5 +208,3 @@
     <script src="app.js"></script>
 </body>
 </html>
-
-
