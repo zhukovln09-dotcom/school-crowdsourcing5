@@ -1,14 +1,21 @@
 # render.yaml
 services:
   - type: web
-    name: school-crowdsourcing-mongo
+    name: school-crowdsourcing-auth
     env: node
     buildCommand: npm install
     startCommand: npm start
     envVars:
       - key: MONGODB_URI
-        sync: false  # Нужно будет вписать вручную в панели Render
+        sync: false
+      - key: JWT_SECRET
+        generateValue: true
+      - key: SESSION_SECRET
+        generateValue: true
       - key: NODE_ENV
         value: production
       - key: PORT
         value: 3000
+      - key: FRONTEND_URL
+        value: https://your-app-name.onrender.com
+    healthCheckPath: /api/health
